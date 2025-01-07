@@ -14,17 +14,42 @@ typedef bit<32> ip4Addr_t;
 header ethernet_t {
     macAddr_t dstAddr;
     macAddr_t srcAddr;
-    //TO-DO: Define the EtherType header 
+    bit<16> ether_type;
 }
 
 header ipv4_t {
-
-	//TO-DO: Define the IPv4 header with all its fields
+    bit<4> version;
+    bit<4> ihl;
+    bit<8> diffserv;
+    bit<16> total_len;
+    bit<16> identification;
+    bit<3> flags;
+    bit<13> frag_offset;
+    bit<8> ttl;
+    bit<8> protocol;
+    bit<16> hdr_checksum
+    ipv4_addr_t src_addr;
+    ipv4_addr_t dst_addr;
+    bit<*> options;
 }
 
 header tcp_t {
-
-	//TO-DO: Define the TCP header with all its fields
+    bit<16> src_port;
+    bit<16> dst_port;
+    bit<32> seq_no;
+    bit<32> ack_no;
+    bit<4>  data_offset;
+    bit<3>  res;
+    bit<3>  ecn;
+    bit<1>  urg;
+    bit<1>  ack;
+    bit<1>  psh;
+    bit<1>  rst;
+    bit<1>  syn;
+    bit<1>  fin;
+    bit<16> window;
+    bit<16> checksum;
+    bit<16> urgent_ptr;
 }
 
 
@@ -66,13 +91,17 @@ parser MyParser(packet_in packet,
    state parse_ipv4 {
         packet.extract(hdr.ipv4);
         transition select(hdr.ipv4.protocol) {
+            /* 
+            TO-DO: define two transitions as follows:
+            - If the packet is an IP packet, then transition to the 
+            parse_tcp state.
+            - Otherwise, simply accept the packet.
+            */
 
-	    /* 
-		TO-DO: define two transitions as follows:
-		- If the packet is an IP packet, then transition to the 
-		  parse_tcp state.
-		- Otherwise, simply accept the packet.
-	    */
+            // We took this to understand that the transition should go to the parse_tcp state when
+            // the ipv4 protocol is TCP, since the packet is an IP packet.
+            6: parse_tcp;
+            default: accept;
     	}
     }
     state parse_tcp {
@@ -143,6 +172,7 @@ control MyIngress(inout headers hdr,
    }
 
    action set_actionselect3(bit<14> featurevalue3){
+        meta.action_select3 = featurevalue3 ;
 	// TO-DO: Define the behavior of this action.
 	// the action_select3 of the custom metadata
 	// must be set to the value passed as argument
@@ -179,9 +209,7 @@ control MyIngress(inout headers hdr,
 
     table feature3_exact{
         key = {
-
-	    // TO-DO: Define the key using the TCP destination port.
-	    // Remember the match type must be range
+            hdr.tcp.dstPort : range ;
         }
         actions = {
 	   NoAction;
@@ -213,11 +241,7 @@ control MyIngress(inout headers hdr,
     }
     
     apply {
-        if (hdr.ipv4.isValid() ) {
-		feature1_exact.apply();
-
-
-		/* 
+        /* 
 		   TO-DO: Implement the following:
 		   - If the packet is an TCP packet:
 			- Try to match against the table for feature 2
@@ -230,7 +254,17 @@ control MyIngress(inout headers hdr,
 			Hint: Remember that the action for features is
 			selected through the fields of the metadata struct.
 		*/
-		
+        if (hdr.ipv4.isValid() ) {
+		feature1_exact.apply();
+
+        if (hdr.ipv4.protocol == 6) {
+            feature2_exact.apply();
+            feature3_exact.apply();
+        }
+        else {
+            meta.action_select1 = 1;
+            meta.action_select2 = 1;
+        }		
 	}
 
 	ipv4_exact.apply();
