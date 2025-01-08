@@ -97,8 +97,6 @@ parser MyParser(packet_in packet,
             - Otherwise, simply accept the packet.
             */
 
-            // We took this to understand that the transition should go to the parse_tcp state when
-            // the ipv4 protocol is TCP, since the packet is an IP packet.
             6: parse_tcp;
             default: accept;
     	}

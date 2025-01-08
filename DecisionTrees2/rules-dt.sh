@@ -1,4 +1,4 @@
-simple_switch_CLI --thrift-port 9090 <<<  "table_add MyIngress.feature1_exact MyIngress.set_actionselect1 0-0x20 => 1 1";
+simple_switch_CLI --thrift-port 9090 <<<  "table_add MyIngress.feature1_exact MyIngress.set_actionselect1 0->0x20 => 1 1";
 
 simple_switch_CLI --thrift-port 9090 <<< "table_add MyIngress.feature2_exact MyIngress.set_actionselect2 0->0xb87 => 1 1";
 simple_switch_CLI --thrift-port 9090 <<< "table_add MyIngress.feature2_exact MyIngress.set_actionselect2 0xb88->0x1386 => 2 1";
