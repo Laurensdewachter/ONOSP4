@@ -18,25 +18,25 @@ header ethernet_t {
 }
 
 header ipv4_t {
-   bit<4>       version;
-   bit<4>       ihl;
-   bit<8>       diffserv;
-   bit<16>      totalLen;
-   bit<16>      identification;
-   bit<3>       flags;
-   bit<13>      fragOffset;
-   bit<8>       ttl;
-   bit<8>       protocol;
-   bit<16>      hdrChecksum;
-   bit<32>      srcAddr;
-   bit<32>      dstAddr;
+   bit<4>    version;
+   bit<4>    ihl;
+   bit<8>    diffserv;
+   bit<16>   totalLen;
+   bit<16>   identification;
+   bit<3>    flags;
+   bit<13>   fragOffset;
+   bit<8>    ttl;
+   bit<8>    protocol;
+   bit<16>   hdrChecksum;
+   ip4Addr_t srcAddr;
+   ip4Addr_t dstAddr;
 }
 
 header tcp_t {
     bit<16> srcPort;
     bit<16> dstPort;
-    bit<32> seq_no;
-    bit<32> ack_no;
+    bit<32> seqNo;
+    bit<32> ackNo;
     bit<4>  data_offset;
     bit<3>  res;
     bit<3>  ecn;
@@ -172,10 +172,6 @@ control MyIngress(inout headers hdr,
 
    action set_actionselect3(bit<14> featurevalue3){
         meta.action_select3 = featurevalue3 ;
-	// TO-DO: Define the behavior of this action.
-	// the action_select3 of the custom metadata
-	// must be set to the value passed as argument
-
    }
  
    table feature1_exact{
@@ -254,16 +250,15 @@ control MyIngress(inout headers hdr,
 			selected through the fields of the metadata struct.
 		*/
         if (hdr.ipv4.isValid() ) {
-		feature1_exact.apply();
+		    feature1_exact.apply();
 
-        if (hdr.ipv4.protocol == 6) {
-            feature2_exact.apply();
-            feature3_exact.apply();
-        }
-        else {
-            meta.action_select1 = 1;
-            meta.action_select2 = 1;
-        }		
+            if (hdr.ipv4.protocol == 6) {
+                feature2_exact.apply();
+                feature3_exact.apply();
+            } else {
+                meta.action_select1 = 1;
+                meta.action_select2 = 1;
+            }
 	}
 
 	ipv4_exact.apply();
